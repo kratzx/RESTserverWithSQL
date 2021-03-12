@@ -16,6 +16,7 @@
     "start": "tsc && node build/index.js"
   },
   "dependencies": {
+    "sequelize": "^6.5.0",
     "supertest": "^6.1.3"
   }
 }
