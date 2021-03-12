@@ -1,184 +1,334 @@
-//import createServer from "./server";
-//import Post from "./models/Post";
-//import mongoose from "mongoose";
 import supertest from "supertest";
-
+// importar BD
+// importar server
+// importar modelo User
 
 beforeEach(() => {
   
-  //const app = Server.createServer();
-  //dbConnection();
+  const app = Server.createServer();
+  // Debe conectar a una base de pruebas
+  dbConnect();
 
 });
 
 afterEach(() => {
 
-  //Server.closeServer();
-  //dbClose();
-
+  dbClose();
+  Server.closeServer();
+  
 });
 
 describe("Users endpoint integration testing", () => {
 
-  describe("GET /api/users", () => {
+  describe("GET    /api/users/", () => {
 
-    test("algo", async () => {
+    test("Receive complete User DB", async () => {
+      const user1 = await User.create({
+        title: "User 1",
+        content: "Lorem ipsum",
+      });
 
+      const user2 = await User.create({
+        title: "User 1",
+        content: "Lorem ipsum",
+      });
+    
+      await supertest(app)
+        .get("/api/users")
+        .expect(200)
+        .then((response) => {
+          // Check the response type and length
+          expect(Array.isArray(response.body)).toBeTruthy();
+          expect(response.body.length).toEqual(1);
+    
+          // Check the response data
+          expect(response.body[0]._id).toBe(user1.id);
+          expect(response.body[0].title).toBe(user1.title);
+          expect(response.body[0].content).toBe(user1.content);
+
+          expect(response.body[0]._id).toBe(user2.id);
+          expect(response.body[0].title).toBe(user2.title);
+          expect(response.body[0].content).toBe(user2.content);
+        });
+      
+      // Teardown
+      User.delete(user1);
+      User.delete(user2);      
     });
-
-
   });
 
-  describe("GET /api/users/:id", () => {
+  describe("GET    /api/users/:id", () => {
 
-    test("algo", async () => {
+    test("Request valid User ID, receive complete user info", async () => {
 
+      const user = await User.create({
+        title: "User 1",
+        content: "Lorem ipsum",
+      });
+    
+      await supertest(app)
+        .get("/api/users" + user.id)
+        .expect(200)
+        .then((response) => {
+          // Check the response type and length
+          expect(Array.isArray(response.body)).toBeTruthy();
+          expect(response.body.length).toEqual(1);
+    
+          // Check the response data
+          expect(response.body[0]._id).toBe(user.id);
+          expect(response.body[0].title).toBe(user.title);
+          expect(response.body[0].content).toBe(user.content);
+        });
+      
+      // Teardown
+      User.delete(user);
     });
 
+    test("Request invalid User ID, receive error", async () => {
 
+      const user = await User.create({
+        title: "User 1",
+        content: "Lorem ipsum",
+      });
+    
+      await supertest(app)
+        .get("/api/users" + user.id)
+        .expect(200)
+        .then((response) => {
+          // Check the response type and length
+          expect(Array.isArray(response.body)).toBeTruthy();
+          expect(response.body.length).toEqual(1);
+    
+          // Check the response data
+          expect(response.body[0]._id).toBe(user.id);
+          expect(response.body[0].title).toBe(user.title);
+          expect(response.body[0].content).toBe(user.content);
+        });
+      
+      // Teardown
+      User.delete(user);
+    });
   });
 
-  describe("PUT /api/users/:id", () => {
+  describe("PUT    /api/users/:id", () => {
 
-    test("algo", async () => {
+    test("Update valid User data", async () => {
+
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .put("/api/users" + data.id)
+        .send(data)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
 
     });
 
+    test("Update User with incomplete data, receive error", async () => {
 
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .put("/api/users" + data.id)
+        .send(data)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
+
+    });
+
+    test("Update invalid User data, receive error", async () => {
+
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .put("/api/users")
+        .send(data + data.id)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
+    });
   });
 
+  describe("POST   /api/users/", () => {
 
-  describe("POST /api/users/", () => {
+    test("Create valid User", async () => {
 
-    test("algo", async () => {
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .post("/api/users")
+        .send(data)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
 
     });
 
+    test("Create User with incomplete data, receive error", async () => {
 
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .post("/api/users")
+        .send(data)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
+
+    });
   });
 
-  describe("PATCH /api/users/:id", () => {
+  describe("PATCH  /api/users/:id", () => {
 
-    test("algo", async () => {
+    test("Update valid User ID", async () => {
+
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .patch("/api/users" + data.id)
+        .send(data)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
 
     });
 
+    test("Update invalid User ID, receive error", async () => {
 
+      const data = {
+        title: "User 1",
+        content: "Lorem ipsum",
+      };
+    
+      await supertest(app)
+        .patch("/api/users" + data.id)
+        .send(data)
+        .expect(200)
+        .then(async (response) => {
+          // Check the response
+          expect(response.body._id).toBeTruthy();
+          expect(response.body.title).toBe(data.title);
+          expect(response.body.content).toBe(data.content);
+    
+          // Check the data in the database
+          const user = await User.findOne({ _id: response.body._id });
+          expect(user).toBeTruthy();
+          expect(user.title).toBe(data.title);
+          expect(user.content).toBe(data.content);
+        });
+    });
   });
 
   describe("DELETE /api/users/:id", () => {
 
-    test("algo", async () => {
+    test("Request delete valid User ID", async () => {
 
+      const user = await User.create({
+        title: "User 1",
+        content: "Lorem ipsum",
+      });
+    
+      await supertest(app)
+        .delete("/api/users/" + user.id)
+        .expect(204)
+        .then(async () => {
+          expect(await User.findOne({ _id: user.id })).toBeFalsy();
+        });
     });
 
+    test("Request delete invalid User ID, receive error", async () => {
 
+      const user = await User.create({
+        title: "User 1",
+        content: "Lorem ipsum",
+      });
+    
+      await supertest(app)
+        .delete("/api/users/" + user.id)
+        .expect(204)
+        .then(async () => {
+          expect(await User.findOne({ _id: user.id })).toBeFalsy();
+        });
+    });
   });
-}
-
-
-
-//test("GET /api/posts", async () => {
-//  const post = await Post.create({
-//    title: "Post 1",
-//    content: "Lorem ipsum",
-//  });
-//
-//  await supertest(app)
-//    .get("/api/posts")
-//    .expect(200)
-//    .then((response) => {
-//      // Check the response type and length
-//      expect(Array.isArray(response.body)).toBeTruthy();
-//      expect(response.body.length).toEqual(1);
-//
-//      // Check the response data
-//      expect(response.body[0]._id).toBe(post.id);
-//      expect(response.body[0].title).toBe(post.title);
-//      expect(response.body[0].content).toBe(post.content);
-//    });
-//});
-//
-//test("POST /api/posts", async () => {
-//  const data = {
-//    title: "Post 1",
-//    content: "Lorem ipsum",
-//  };
-//
-//  await supertest(app)
-//    .post("/api/posts")
-//    .send(data)
-//    .expect(200)
-//    .then(async (response) => {
-//      // Check the response
-//      expect(response.body._id).toBeTruthy();
-//      expect(response.body.title).toBe(data.title);
-//      expect(response.body.content).toBe(data.content);
-//
-//      // Check the data in the database
-//      const post = await Post.findOne({ _id: response.body._id });
-//      expect(post).toBeTruthy();
-//      expect(post.title).toBe(data.title);
-//      expect(post.content).toBe(data.content);
-//    });
-//});
-//
-//test("GET /api/posts/:id", async () => {
-//  const post = await Post.create({
-//    title: "Post 1",
-//    content: "Lorem ipsum",
-//  });
-//
-//  await supertest(app)
-//    .get("/api/posts/" + post.id)
-//    .expect(200)
-//    .then((response) => {
-//      expect(response.body._id).toBe(post.id);
-//      expect(response.body.title).toBe(post.title);
-//      expect(response.body.content).toBe(post.content);
-//    });
-//});
-//
-//test("PATCH /api/posts/:id", async () => {
-//  const post = await Post.create({
-//    title: "Post 1",
-//    content: "Lorem ipsum",
-//  });
-//
-//  const data = {
-//    title: "New title",
-//    content: "dolor sit amet",
-//  };
-//
-//  await supertest(app)
-//    .patch("/api/posts/" + post.id)
-//    .send(data)
-//    .expect(200)
-//    .then(async (response) => {
-//      // Check the response
-//      expect(response.body._id).toBe(post.id);
-//      expect(response.body.title).toBe(data.title);
-//      expect(response.body.content).toBe(data.content);
-//
-//      // Check the data in the database
-//      const newPost = await Post.findOne({ _id: response.body._id });
-//      expect(newPost).toBeTruthy();
-//      expect(newPost.title).toBe(data.title);
-//      expect(newPost.content).toBe(data.content);
-//    });
-//});
-//
-//test("DELETE /api/posts/:id", async () => {
-//  const post = await Post.create({
-//    title: "Post 1",
-//    content: "Lorem ipsum",
-//  });
-//
-//  await supertest(app)
-//    .delete("/api/posts/" + post.id)
-//    .expect(204)
-//    .then(async () => {
-//      expect(await Post.findOne({ _id: post.id })).toBeFalsy();
-//    });
-//});
-//
+});
