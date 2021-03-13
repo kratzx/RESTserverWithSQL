@@ -1,20 +1,20 @@
 import supertest from "supertest";
-// importar BD
-// importar server
-// importar modelo User
 
-beforeEach(() => {
-  
-  const app = Server.createServer();
-  // Debe conectar a una base de pruebas
+import User from '../src/api/models/user';
+import Server from '../src/api/models/server'
+import { dbConnect, dbClose } from "../src/api/db/connection";
+
+const server = new Server();
+
+beforeAll(() => { 
+
   dbConnect();
 
 });
 
-afterEach(() => {
+afterAll(() => {
 
   dbClose();
-  Server.closeServer();
   
 });
 
@@ -23,17 +23,32 @@ describe("Users endpoint integration testing", () => {
   describe("GET    /api/users/", () => {
 
     test("Receive complete User DB", async () => {
+
+      // Prepare data
       const user1 = await User.create({
-        title: "User 1",
-        content: "Lorem ipsum",
+        division_id: 1,
+        full_name: "Person One",
+        phone: 12345678,
+        age: 10,
+        email: "one@person.com",
+        position: "first",
+        address: "test street 1",
+        state: true
       });
 
       const user2 = await User.create({
-        title: "User 1",
-        content: "Lorem ipsum",
+        division_id: 2,
+        full_name: "Person Two",
+        phone: 87654321,
+        age: 20,
+        email: "two@person.com",
+        position: "second",
+        address: "test street 2",
+        state: true
       });
     
-      await supertest(app)
+      // Act and verify results
+      await supertest(server.app)
         .get("/api/users")
         .expect(200)
         .then((response) => {
@@ -42,18 +57,19 @@ describe("Users endpoint integration testing", () => {
           expect(response.body.length).toEqual(1);
     
           // Check the response data
-          expect(response.body[0]._id).toBe(user1.id);
-          expect(response.body[0].title).toBe(user1.title);
+          // Ver como acceder a ID
+          //expect(response.body[0]._id).toBe(user1.pk);
+          expect(response.body[0].division_id).toBe(user1.division_id);
           expect(response.body[0].content).toBe(user1.content);
 
-          expect(response.body[0]._id).toBe(user2.id);
-          expect(response.body[0].title).toBe(user2.title);
-          expect(response.body[0].content).toBe(user2.content);
+          expect(response.body[1]._id).toBe(user2.id);
+          expect(response.body[1].title).toBe(user2.title);
+          expect(response.body[1].content).toBe(user2.content);
         });
       
-      // Teardown
-      User.delete(user1);
-      User.delete(user2);      
+      // Teardown data
+      user1.destroy();
+      user2.destroy();      
     });
   });
 
@@ -66,7 +82,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       });
     
-      await supertest(app)
+      await supertest(server.app)
         .get("/api/users" + user.id)
         .expect(200)
         .then((response) => {
@@ -91,7 +107,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       });
     
-      await supertest(app)
+      await supertest(server.app)
         .get("/api/users" + user.id)
         .expect(200)
         .then((response) => {
@@ -119,7 +135,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .put("/api/users" + data.id)
         .send(data)
         .expect(200)
@@ -145,7 +161,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .put("/api/users" + data.id)
         .send(data)
         .expect(200)
@@ -171,7 +187,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .put("/api/users")
         .send(data + data.id)
         .expect(200)
@@ -199,7 +215,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .post("/api/users")
         .send(data)
         .expect(200)
@@ -225,7 +241,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .post("/api/users")
         .send(data)
         .expect(200)
@@ -254,7 +270,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .patch("/api/users" + data.id)
         .send(data)
         .expect(200)
@@ -280,7 +296,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       };
     
-      await supertest(app)
+      await supertest(server.app)
         .patch("/api/users" + data.id)
         .send(data)
         .expect(200)
@@ -308,7 +324,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       });
     
-      await supertest(app)
+      await supertest(server.app)
         .delete("/api/users/" + user.id)
         .expect(204)
         .then(async () => {
@@ -323,7 +339,7 @@ describe("Users endpoint integration testing", () => {
         content: "Lorem ipsum",
       });
     
-      await supertest(app)
+      await supertest(server.app)
         .delete("/api/users/" + user.id)
         .expect(204)
         .then(async () => {
