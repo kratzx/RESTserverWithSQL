@@ -1,5 +1,6 @@
-import express, { Application } from 'express';
-import cors from 'cors';
+import * as express from 'express';
+import { Application } from 'express';
+//import cors from 'cors';
 import config from '../../config';
 
 //import userRoutes from '../routes/usuario';
@@ -13,7 +14,7 @@ class Server {
     }
 
     constructor() {
-        this._app  = express();
+        this._app = express();
         this.port = config.port || '8000';
 
         // Métodos iniciales
