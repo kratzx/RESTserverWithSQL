@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import { Application } from 'express';
 //import cors from 'cors';
 import config from '../../config';
@@ -41,7 +41,9 @@ class Server {
 
 
     listen() {
-
+       this._app.listen(this.port, () => {
+           console.log('Server is listening on localhost:', this.port);
+       });
     }
 
 }

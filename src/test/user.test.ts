@@ -1,8 +1,8 @@
-import * as request from "supertest";
+import request from "supertest";
 
-import User from '../src/api/models/user';
-import Server from '../src/api/models/server'
-import { dbConnect, dbClose } from "../src/api/db/connection";
+import User from '../api/models/user';
+import Server from '../api/models/server'
+import { dbConnect, dbClose } from "../api/db/connection";
 import { Model } from "sequelize/types";
 
 const server = new Server();
@@ -365,7 +365,7 @@ describe("Users endpoint integration testing", () => {
 
     test("Update invalid User ID, receive error", async () => {
 
-      const data = null;
+      const data = '';
       const fakeId = "fake lol";
     
       await request(server.app)
@@ -393,7 +393,7 @@ describe("Users endpoint integration testing", () => {
       const id = user.get('id'); 
     
       await request(server.app)
-        .delete("/api/users/" + id.toString)
+        .delete("/api/users/" + id.toString())
         .expect(204)
         .then(async () => {
           return expect(await User.findOne( id )).toBeFalsy();
